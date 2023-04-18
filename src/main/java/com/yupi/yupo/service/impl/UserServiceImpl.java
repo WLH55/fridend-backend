@@ -17,7 +17,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,8 +34,7 @@ import static com.yupi.yupo.contant.UserConstant.USER_LOGIN_STATE;
  */
 @Service
 @Slf4j
-public class UserServiceImpl extends ServiceImpl<UserMapper, User>
-        implements UserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Resource
     private UserMapper userMapper;
@@ -140,7 +141,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return
      */
     @Override
-    public User getSafetyUser(User originUser)  {
+    public User getSafetyUser(User originUser) {
         if (originUser == null) {
             return null;
         }
@@ -162,6 +163,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 用户注销
+     *
      * @param request
      */
     @Override
@@ -172,7 +174,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     *拼接sql 查询
+     * 拼接sql 查询
+     *
      * @param TagNameList
      * @return
      */
@@ -194,10 +197,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      * 根据标签搜索用户
      * 内存查询
+     *
      * @param TagNameList
      * @return
      */
-        //内存查询
+    //内存查询
     public List<User> searchUserByTags(List<String> TagNameList) {
         if (CollectionUtils.isEmpty(TagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -207,16 +211,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<User> userlist = userMapper.selectList(queryWrapper);
         //2.在内存中判断是否包含需要的标签
         Gson gson = new Gson();
+        //如果想要这个并发执行可以用parallelStream
         return userlist.stream().filter(user -> {
             String tagsStr = user.getTags();
             //如果用户没有标签，直接返回false
-            if(StringUtils.isBlank(tagsStr)){
-                return false;
-            }
+//            if(StringUtils.isBlank(tagsStr)){
+//                return false;
+//            }
             //可以使用set优化，set可以去重，提升查询速度
-            Set<String> temtagNamelist = gson.fromJson(tagsStr, new TypeToken<Set<String>>() {}.getType());//将json字符串转换为list
-            for(String tagName : TagNameList){
-                if(!temtagNamelist.contains(tagName)){
+            //将json字符串转换为list
+            Set<String> temtagNamelist = gson.fromJson(tagsStr, new TypeToken<Set<String>>() {
+            }.getType());
+            //判空
+            temtagNamelist = Optional.ofNullable(temtagNamelist).orElse(new HashSet<>());
+            for (String tagName : TagNameList) {
+                if (!temtagNamelist.contains(tagName)) {
                     return false;
                 }
             }
@@ -224,7 +233,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         }).map(this::getSafetyUser).collect(Collectors.toList());
     }
-
 
 
 //
@@ -244,9 +252,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 //            }
 //        }
 //            return userlist.stream().map(this::getSafetyUser).collect(Collectors.toList());
-
-
-
 
 
 }
