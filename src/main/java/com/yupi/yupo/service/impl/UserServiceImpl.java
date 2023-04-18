@@ -172,30 +172,38 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     * 根据标签搜索用户
+     *拼接sql 查询
      * @param TagNameList
      * @return
      */
-    @Override
-    public List<User> searchUserByTags(List<String> TagNameList){
-        if(CollectionUtils.isEmpty(TagNameList)){
+    @Deprecated //已过时
+    public List<User> searchUserByTagsBySQL(List<String> TagNameList) {
+        if (CollectionUtils.isEmpty(TagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 //        sql查询
-//       QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-//        //拼接查询 like '%java%' and like '%python%'
-//        for(String tagName : TagNameList){
-//           queryWrapper = queryWrapper.like("tags",tagName);
-//        }
-//        List<User> userlist = userMapper.selectList(queryWrapper);
-//        return userlist.stream().map(this::getSafetyUser).collect(Collectors.toList());
-
-
-
-
-        //内存查询
-        //1.查询所有用户
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        //拼接查询 like '%java%' and like '%python%'
+        for (String tagName : TagNameList) {
+            queryWrapper = queryWrapper.like("tags", tagName);
+        }
+        List<User> userlist = userMapper.selectList(queryWrapper);
+        return userlist.stream().map(this::getSafetyUser).collect(Collectors.toList());
+    }
+
+    /**
+     * 根据标签搜索用户
+     * 内存查询
+     * @param TagNameList
+     * @return
+     */
+        //内存查询
+    public List<User> searchUserByTags(List<String> TagNameList) {
+        if (CollectionUtils.isEmpty(TagNameList)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        //1.查询所有用户
         List<User> userlist = userMapper.selectList(queryWrapper);
         //2.在内存中判断是否包含需要的标签
         Gson gson = new Gson();
@@ -215,7 +223,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return true;
 
         }).map(this::getSafetyUser).collect(Collectors.toList());
-        //fsdfds
+    }
+
+
 
 //
 //            for(User user : userlist) {
@@ -236,7 +246,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 //            return userlist.stream().map(this::getSafetyUser).collect(Collectors.toList());
 
 
-    }
 
 
 
