@@ -10,6 +10,12 @@ spring:
   # session 失效时间
   session:
     timeout: 86400
+
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+  profiles:
+    active: test
 server:
   port: 8080
   servlet:
