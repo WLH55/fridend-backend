@@ -48,11 +48,7 @@
             <artifactId>easyexcel</artifactId>
             <version>3.1.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.xmlbeans</groupId>
-            <artifactId>xmlbeans</artifactId>
-            <version>3.1.0</version>
-        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
