@@ -9,7 +9,10 @@ import com.yupi.yupo.model.domain.User;
 import com.yupi.yupo.model.domain.request.UserLoginRequest;
 import com.yupi.yupo.model.domain.request.UserRegisterRequest;
 import com.yupi.yupo.service.UserService;
+import io.swagger.annotations.Api;
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -27,6 +30,7 @@ import static com.yupi.yupo.contant.UserConstant.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
+@CrossOrigin(origins = {"http://localhost:3000/"})//允许跨域,前端端口
 public class UserController {
 
     @Resource
@@ -70,7 +74,9 @@ public class UserController {
         int result = userService.userLogout(request);
         return ResultUtils.success(result);
     }
-
+//8EF4B2F296BEDD10973CAF4FD5EECB73
+//    8EF4B2F296BEDD10973CAF4FD5EECB73
+//    8EF4B2F296BEDD10973CAF4FD5EECB73
     @GetMapping("/current")
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
@@ -99,6 +105,16 @@ public class UserController {
         return ResultUtils.success(list);
     }
 
+
+    @GetMapping("/search/tags")
+    public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagnamelist) {
+        if(CollectionUtils.isEmpty(tagnamelist)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        List<User> userList = userService.searchUserByTags(tagnamelist);
+
+        return ResultUtils.success(userList);
+    }
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
         if (!isAdmin(request)) {

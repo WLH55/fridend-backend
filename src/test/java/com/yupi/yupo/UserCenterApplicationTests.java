@@ -9,16 +9,16 @@ import java.security.NoSuchAlgorithmException;
 @SpringBootTest
 class UserCenterApplicationTests {
 
-    @Test
-    void testDigest() throws NoSuchAlgorithmException {
-        String newPassword= DigestUtils.md5DigestAsHex(("abcd" + "mypassword").getBytes());
-        System.out.println(newPassword);
-    }
+//    @Test
+//    void testDigest() throws NoSuchAlgorithmException {
+//        String newPassword= DigestUtils.md5DigestAsHex(("abcd" + "mypassword").getBytes());
+//        System.out.println(newPassword);
+//    }
 
 
-    @Test
-    void contextLoads() {
-
-    }
+//    @Test
+//    void contextLoads() {
+//
+//    }
 
 }

@@ -7,10 +7,15 @@ spring:
     url: jdbc:mysql://localhost:3306/yupao
     username: root
     password: lhshiwode
-  # session 失效时间
+  # session 失效时间（分钟  也就是86400分钟 两个月）
   session:
     timeout: 86400
+    store-type: redis #默认是none也就是单台服务器
 
+  redis:
+    port: 6379
+    host: localhost
+    database: 0  #默认是0
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
@@ -20,6 +25,10 @@ server:
   port: 8080
   servlet:
     context-path: /api
+    session:
+      cookie:
+        domian:
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false
