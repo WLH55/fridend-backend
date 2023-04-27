@@ -25,6 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.yupi.yupo.contant.UserConstant.ADMIN_ROLE;
 import static com.yupi.yupo.contant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -232,6 +233,62 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return true;
 
         }).map(this::getSafetyUser).collect(Collectors.toList());
+    }
+
+    /**
+     * 更新用户信息
+     * @param user
+     * @return
+     */
+    @Override
+    public int updateUser(User user,User loginUser) {
+        long userId = user.getId();
+        if(userId <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //仅管理员和自己可以修改
+        if(!isAdmin(loginUser) && userId != loginUser.getId()){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        User userold = userMapper.selectById(userId);
+        if(userold == null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        return userMapper.updateById(user);
+
+
+
+    }
+
+    /**
+     * 获取当前用户登陆信息
+     * @param request
+     * @return
+     */
+    @Override
+    public User getUserlogin(HttpServletRequest request) {
+        if(request == null){
+            return null;
+        }
+
+        Object ObjUser = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if(ObjUser == null){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return (User) ObjUser;
+    }
+
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+        //仅管理员可查询
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) userObj;
+        return user != null && user.getUserRole() == ADMIN_ROLE;
+    }
+
+    @Override
+    public boolean isAdmin(User loginuser) {
+        return loginuser != null && loginuser.getUserRole() == ADMIN_ROLE;
     }
 
 

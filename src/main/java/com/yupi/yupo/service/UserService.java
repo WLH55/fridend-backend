@@ -4,6 +4,7 @@ import com.yupi.yupo.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -56,4 +57,33 @@ public interface UserService extends IService<User> {
      * @return
      */
     List<User> searchUserByTags(List<String> TagNameList);
+
+    /**
+     * 更新用户信息
+     * @param user
+     * @return
+     */
+
+    int updateUser(User user,User userlogin);
+
+    /**
+     * 获取当前用户信息
+     * @param request
+     * @return
+     */
+    User getUserlogin(HttpServletRequest request);
+
+    /**
+     * 判断是否为管理员
+     * @param request
+     * @return
+     */
+    boolean isAdmin(HttpServletRequest request);
+
+    /**
+     * 判断是否为管理员
+     * @param loginuser
+     * @return
+     */
+    boolean isAdmin(User loginuser);
 }
