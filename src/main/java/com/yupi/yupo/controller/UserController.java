@@ -1,6 +1,8 @@
 package com.yupi.yupo.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.yupo.common.BaseResponse;
 import com.yupi.yupo.common.ErrorCode;
 import com.yupi.yupo.common.ResultUtils;
@@ -116,11 +118,10 @@ public class UserController {
         return ResultUtils.success(userList);
     }
     @GetMapping("/recommend")
-    public BaseResponse<List<User>> recommendUser(HttpServletRequest request) {  //推荐用户
+    public BaseResponse<Page<User>> recommendUser(long pageSize, long pageNum ,HttpServletRequest request) {  //推荐用户
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        List<User> userList = userService.list(queryWrapper);
-        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
-        return ResultUtils.success(list);
+        Page<User> userlist = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
+        return ResultUtils.success(userlist);
     }
 
     @PostMapping("/delete")
