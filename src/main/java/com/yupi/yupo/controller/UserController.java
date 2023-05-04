@@ -12,14 +12,19 @@ import com.yupi.yupo.model.domain.request.UserLoginRequest;
 import com.yupi.yupo.model.domain.request.UserRegisterRequest;
 import com.yupi.yupo.service.UserService;
 import io.swagger.annotations.Api;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.implementation.bytecode.Throw;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.yupi.yupo.contant.UserConstant.ADMIN_ROLE;
@@ -33,10 +38,13 @@ import static com.yupi.yupo.contant.UserConstant.USER_LOGIN_STATE;
 @RestController
 @RequestMapping("/user")
 @CrossOrigin(origins = {"http://localhost:3000/"})//允许跨域,前端端口
+@Slf4j
 public class UserController {
 
     @Resource
     private UserService userService;
+    @Resource
+    private RedisTemplate redisTemplate;
 
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
@@ -118,10 +126,26 @@ public class UserController {
         return ResultUtils.success(userList);
     }
     @GetMapping("/recommend")
-    public BaseResponse<Page<User>> recommendUser(long pageSize, long pageNum ,HttpServletRequest request) {  //推荐用户
+    public BaseResponse<Page<User>> recommendUser(long pageSize, long pageNum ,HttpServletRequest request) {
+        //推荐用户
+        User loginUser = userService.getUserlogin(request);
+        String redisKey = String.format("yupo:user:recommend:%s", loginUser.getId());
+        ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
+        //如果有缓存，直接读缓存
+        Page<User> userPage = (Page<User>) valueOperations.get(redisKey);
+        if(userPage != null){
+            return ResultUtils.success(userPage);
+        }
+        //如果没有缓存，查询数据库
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        Page<User> userlist = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
-        return ResultUtils.success(userlist);
+        userPage = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
+        //写缓存
+        try {
+            valueOperations.set(redisKey,userPage,10000, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {//打上注解@slf4j 他是lombok的注解，可以自动生成日志对象,可以使用log.error();
+            log.error("redis set key error",e);
+        }
+        return ResultUtils.success(userPage);
     }
 
     @PostMapping("/delete")
