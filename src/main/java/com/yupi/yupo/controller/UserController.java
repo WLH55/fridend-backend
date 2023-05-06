@@ -1,20 +1,16 @@
 package com.yupi.yupo.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.yupo.common.BaseResponse;
 import com.yupi.yupo.common.ErrorCode;
 import com.yupi.yupo.common.ResultUtils;
 import com.yupi.yupo.exception.BusinessException;
 import com.yupi.yupo.model.domain.User;
-import com.yupi.yupo.model.domain.request.UserLoginRequest;
-import com.yupi.yupo.model.domain.request.UserRegisterRequest;
+import com.yupi.yupo.model.request.UserLoginRequest;
+import com.yupi.yupo.model.request.UserRegisterRequest;
 import com.yupi.yupo.service.UserService;
-import io.swagger.annotations.Api;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.implementation.bytecode.Throw;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -27,7 +23,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.yupi.yupo.contant.UserConstant.ADMIN_ROLE;
 import static com.yupi.yupo.contant.UserConstant.USER_LOGIN_STATE;
 
 /**
