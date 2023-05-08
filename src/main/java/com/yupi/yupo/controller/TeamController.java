@@ -15,6 +15,7 @@ import com.yupi.yupo.model.domain.User;
 import com.yupi.yupo.model.dto.TeamQuery;
 import com.yupi.yupo.model.request.TeamAddRequest;
 import com.yupi.yupo.model.request.TeamJoinRequest;
+import com.yupi.yupo.model.request.TeamQuitRequest;
 import com.yupi.yupo.model.request.TeamUpdateRequest;
 import com.yupi.yupo.service.TeamService;
 import com.yupi.yupo.service.UserService;
@@ -57,12 +58,14 @@ public class TeamController {
     }
 
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteTeam(@RequestBody  long id){
+    public BaseResponse<Boolean> deleteTeam(@RequestBody  long id,HttpServletRequest request){
         if(id <= 0){
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        boolean Result = teamService.removeById(id);
-        if(!Result){
+        User loginUser = userService.getUserlogin(request);
+        boolean result = teamService.deleteTeam(id,loginUser);
+
+        if(!result){
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"删除队伍失败");
         }
         return ResultUtils.success(true);
@@ -122,6 +125,16 @@ public class TeamController {
         }
         User loginUser = userService.getUserlogin(request);
         boolean result = teamService.joinTeam(teamJoinRequest,loginUser);
+        return ResultUtils.success(result);
+    }
+
+    @PostMapping("/quit")
+    public BaseResponse<Boolean> quitTeam(@RequestBody TeamQuitRequest teamQuitRequesta, HttpServletRequest request){
+        if(teamQuitRequesta == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getUserlogin(request);
+        boolean result = teamService.quitTeam(teamQuitRequesta,loginUser);
         return ResultUtils.success(result);
     }
 
