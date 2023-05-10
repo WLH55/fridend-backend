@@ -12,13 +12,12 @@ import com.yupi.yupo.model.VO.TeamUserVO;
 import com.yupi.yupo.model.domain.Team;
 
 import com.yupi.yupo.model.domain.User;
+import com.yupi.yupo.model.domain.UserTeam;
 import com.yupi.yupo.model.dto.TeamQuery;
-import com.yupi.yupo.model.request.TeamAddRequest;
-import com.yupi.yupo.model.request.TeamJoinRequest;
-import com.yupi.yupo.model.request.TeamQuitRequest;
-import com.yupi.yupo.model.request.TeamUpdateRequest;
+import com.yupi.yupo.model.request.*;
 import com.yupi.yupo.service.TeamService;
 import com.yupi.yupo.service.UserService;
+import com.yupi.yupo.service.UserTeamService;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.BeanUtils;
@@ -26,7 +25,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -44,6 +46,62 @@ public class TeamController {
     private UserService userService;
     @Resource
     private TeamService teamService;
+    @Resource
+    private UserTeamService userTeamService;
+
+    /**
+     * 获取我创建的队伍
+     * @param teamQuery
+     * @param request
+     * @return
+     */
+    @GetMapping("/list/my/create")
+    public BaseResponse<List<TeamUserVO>> listMyCreateTeams(TeamQuery teamQuery, HttpServletRequest request){
+        if (teamQuery == null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        User loginUser = userService.getUserlogin(request);
+
+        teamQuery.setUserId(loginUser.getId());
+        List<TeamUserVO> teamList = teamService.listTeams(teamQuery,true);
+        return ResultUtils.success(teamList);
+
+    }
+    /**
+     *  获取我加入的队伍
+     * @param teamQuery
+     * @param request
+     * @return
+     */
+    @GetMapping("/list/my/join")
+    public BaseResponse<List<TeamUserVO>> listMyJoinTeams(TeamQuery teamQuery, HttpServletRequest request) {
+        if (teamQuery == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User logininUser = userService.getUserlogin(request);
+        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId",logininUser.getId());
+        List<UserTeam> userTeamlist = userTeamService.list(queryWrapper);
+        // 取出不重复的队伍 id
+        //teamId userId
+        //1,2
+        //1,3
+        //2,3
+        //result
+        //1=> 2,3
+        //2=> 3
+        //这个java8的写法有问题，会导致只有一个队伍.我用debug显示最后idlist里面的是用户id 而不是队伍id 。哦我发现问题了
+        //不应该UserTeam::getUserId 而是UserTeam::getTeamId
+        Map<Long, List<UserTeam>> listMap = userTeamlist.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
+        ArrayList<Long> idList = new ArrayList<>(listMap.keySet());
+//        ArrayList<Long> idList = new ArrayList<>();
+//        for(UserTeam userTeam : userTeamlist){
+//            idList.add(userTeam.getTeamId());
+//        }
+        teamQuery.setIdList(idList);
+        List<TeamUserVO> teamList = teamService.listTeams(teamQuery,true);
+        return ResultUtils.success(teamList);
+    }
 
     @PostMapping("/add")
     public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request){
@@ -58,10 +116,11 @@ public class TeamController {
     }
 
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteTeam(@RequestBody  long id,HttpServletRequest request){
-        if(id <= 0){
+    public BaseResponse<Boolean> deleteTeam(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request){
+        if(deleteRequest == null || deleteRequest.getId() <= 0){
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
+        long id = deleteRequest.getId();
         User loginUser = userService.getUserlogin(request);
         boolean result = teamService.deleteTeam(id,loginUser);
 

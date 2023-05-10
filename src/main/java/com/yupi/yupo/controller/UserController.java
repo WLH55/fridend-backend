@@ -167,10 +167,20 @@ public class UserController {
     }
 
     /**
-     * 是否为管理员
-     *
+     * 获取最相似的用户
+     * @param num
      * @param request
      * @return
      */
+    @GetMapping("/match")
+   public BaseResponse<List<User>> matchUsers(long num,HttpServletRequest request){
+        if(num <=0 || num > 20){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //这边可能会有缓存的问题，因为数据存在session里面
+        User user  = userService.getUserlogin(request);
+        return ResultUtils.success(userService.matchUsers(num,user));
+   }
+
 
 }
