@@ -19,6 +19,9 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
+    cors:
+      allowed-origins: "*"
+      allowed-methods: GET,POST,PUT,DELETE
   profiles:
     active: test
 server:

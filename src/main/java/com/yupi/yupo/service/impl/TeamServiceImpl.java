@@ -20,6 +20,8 @@ import com.yupi.yupo.service.UserService;
 import com.yupi.yupo.service.UserTeamService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
 * @author WLH
@@ -42,6 +45,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     private UserTeamService userTeamService;
     @Resource
     private UserService userService;
+    @Resource
+    private RedissonClient redissonClient;
 
 
     @Transactional(rollbackFor = Exception.class)
@@ -246,7 +251,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean joinTeam(TeamJoinRequest teamJoinRequest, User loginUser) {
-        if (teamJoinRequest == null){
+        if (teamJoinRequest == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         Long teamId = teamJoinRequest.getTeamId();
@@ -259,52 +264,70 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 //        }
         Team team = getTeamById(teamId);
         Date expireTime = team.getExpireTime();
-        if (expireTime != null && expireTime.before(new Date())){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍已过期");
+        if (expireTime != null && expireTime.before(new Date())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍已过期");
         }
         Integer status = team.getStatus();
         TeamStatusEnum teamStatusEnum = TeamStatusEnum.getEnumByValue(status);
-        if (TeamStatusEnum.PRIVATE.equals(teamStatusEnum)){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"禁止加入私有队伍");
+        if (TeamStatusEnum.PRIVATE.equals(teamStatusEnum)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "禁止加入私有队伍");
         }
         String password = teamJoinRequest.getPassword();
-        if (TeamStatusEnum.SECRET.equals(teamStatusEnum)){
-            if (StringUtils.isBlank(password) || !password.equals(team.getPassword())){
-                throw new BusinessException(ErrorCode.PARAMS_ERROR,"密码错误");
+        if (TeamStatusEnum.SECRET.equals(teamStatusEnum)) {
+            if (StringUtils.isBlank(password) || !password.equals(team.getPassword())) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
             }
         }
         //该用户已加入的队伍数量
         long userId = loginUser.getId();
-        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
-        userTeamQueryWrapper.eq("userId",userId);
-        long hasJoinNum = userTeamService.count(userTeamQueryWrapper);
-        if (hasJoinNum > 5){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"最多创建和加入5个队伍");
-        }
-        //不能重复加入已加入的队伍
-        userTeamQueryWrapper = new QueryWrapper<>();
-        userTeamQueryWrapper.eq("userId",userId);
-        userTeamQueryWrapper.eq("teamId",teamId);
-        long hasUserJoinTeam = userTeamService.count(userTeamQueryWrapper);
-        if (hasUserJoinTeam > 0){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户已加入该队伍");
-        }
-        //已加入队伍的人数
+        RLock lock = redissonClient.getLock("yupao:join_team");
+        try {
+            while (true) {
+                if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)) {
+                    System.out.println("getLock: " + Thread.currentThread().getId());
+                    QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+                    userTeamQueryWrapper.eq("userId", userId);
+                    long hasJoinNum = userTeamService.count(userTeamQueryWrapper);
+                    if (hasJoinNum > 5) {
+                        throw new BusinessException(ErrorCode.PARAMS_ERROR, "最多创建和加入5个队伍");
+                    }
+                    //不能重复加入已加入的队伍
+                    userTeamQueryWrapper = new QueryWrapper<>();
+                    userTeamQueryWrapper.eq("userId", userId);
+                    userTeamQueryWrapper.eq("teamId", teamId);
+                    long hasUserJoinTeam = userTeamService.count(userTeamQueryWrapper);
+                    if (hasUserJoinTeam > 0) {
+                        throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户已加入该队伍");
+                    }
+                    //已加入队伍的人数
 //        userTeamQueryWrapper = new QueryWrapper<>();
 //        userTeamQueryWrapper.eq("teamId",teamId);
 //        long teamHasJoinNum = userTeamService.count(userTeamQueryWrapper);
-        long teamHasJoinNum =this.countTeamUserByTeamId(teamId);
-        if (teamHasJoinNum >= team.getMaxNum()){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍已满");
-        }
-        //加入，修改队伍信息
-        UserTeam userTeam = new UserTeam();
-        userTeam.setUserId(userId);
-        userTeam.setTeamId(teamId);
-        userTeam.setJoinTime(new Date());
-        return userTeamService.save(userTeam);
+                    long teamHasJoinNum = this.countTeamUserByTeamId(teamId);
+                    if (teamHasJoinNum >= team.getMaxNum()) {
+                        throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍已满");
+                    }
+                    //加入，修改队伍信息
+                    UserTeam userTeam = new UserTeam();
+                    userTeam.setUserId(userId);
+                    userTeam.setTeamId(teamId);
+                    userTeam.setJoinTime(new Date());
+                    return userTeamService.save(userTeam);
+                }
 
+            }
+        } catch (InterruptedException e) {
+            log.error("doCacheRecommendUser error", e);
+            return false;
+        } finally {
+            // 只能释放自己的锁
+            if (lock.isHeldByCurrentThread()) {
+                System.out.println("unLock: " + Thread.currentThread().getId());
+                lock.unlock();
+            }
+        }
     }
+
 
     @Override
     public boolean quitTeam(TeamQuitRequest teamQuitRequest, User loginUser) {
