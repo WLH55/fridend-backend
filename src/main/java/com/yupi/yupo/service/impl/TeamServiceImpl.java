@@ -122,8 +122,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         return teamId;
 
-
-
     }
     /**
      *  查询搜索队伍

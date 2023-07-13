@@ -40,6 +40,8 @@ public class RedissonTest {
         map.put("yupi", 10);
         map.get("yupi");
         RMap<Object, Object> map1 = redissonClient.getMap("test-map");
+        map1.put("yupi", 10);
+        map1.get("yupi");
 
         // set
 

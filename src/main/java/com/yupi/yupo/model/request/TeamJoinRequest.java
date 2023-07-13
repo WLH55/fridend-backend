@@ -7,6 +7,7 @@ import java.io.Serializable;
 /**
  * @author WLH
  * @verstion 1.0
+ * 用户加入队伍请求体
  */
 @Data
 public class TeamJoinRequest implements Serializable {

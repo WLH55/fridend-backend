@@ -1,4 +1,6 @@
 -- auto-generated definition
+-- auto-generated definition
+
 create table user
 (
     username     varchar(256)                       null comment '用户昵称',
@@ -15,11 +17,14 @@ create table user
     updateTime   datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     isDelete     tinyint  default 0                 not null comment '是否删除',
     userRole     int      default 0                 not null comment '用户角色 0 - 普通用户 1 - 管理员',
-    planetCode   varchar(512)                       null comment '星球编号'
+    planetCode   varchar(512)                       null comment '星球编号',
+    tags         varchar(1024)                      null comment '标签 json 列表'
 )
     comment '用户';
 
---- 队伍表
+
+
+-- 队伍表
 create table team
 (
     id           bigint auto_increment comment 'id'
@@ -38,7 +43,7 @@ create table team
 )
     comment '队伍';
 
---- 队伍成员表
+-- 队伍成员表
 create table user_team
 (
     id           bigint auto_increment comment 'id'

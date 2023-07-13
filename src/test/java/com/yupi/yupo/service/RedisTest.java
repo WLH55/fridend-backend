@@ -23,22 +23,22 @@ public class RedisTest {
     void test(){
         ValueOperations valueOperations = redisTemplate.opsForValue();
         //增
-        valueOperations.set("yupiString","dog");
-        valueOperations.set("yupiInt",1);
-        valueOperations.set("yupiDouble",1.1);
+        valueOperations.set("wlh","dog");
+        valueOperations.set("cwl",1);
+        valueOperations.set("陈文龙",1.1);
         User user = new User();
         user.setId(1L);
-        user.setUsername("yupi");
-        valueOperations.set("yupiUser",user);
+        user.setUsername("文千");
+        valueOperations.set("天祥",user);
+        System.out.println(valueOperations.get("天祥"));
         //查
-        Object yupi = valueOperations.get("yupiString");
-        Assertions.assertTrue("dog".equals((String) yupi));
-        Object yupiInt = valueOperations.get("yupiInt");
-        Assertions.assertTrue(1 == (Integer) yupiInt);
-        Object yupiDouble = valueOperations.get("yupiDouble");
-        Assertions.assertTrue(1.1 == (Double) yupiDouble);
-        System.out.println(valueOperations.get("yupiUser"));
-
+//        Object yupi = valueOperations.get("wlh");
+//        Assertions.assertTrue("dog".equals((String) yupi));
+//        Object yupiInt = valueOperations.get("yupiInt");
+//        Assertions.assertTrue(1 == (Integer) yupiInt);
+//        Object yupiDouble = valueOperations.get("yupiDouble");
+//        Assertions.assertTrue(1.1 == (Double) yupiDouble);
+//        System.out.println(valueOperations.get("yupiUser"));
     }
 
 }

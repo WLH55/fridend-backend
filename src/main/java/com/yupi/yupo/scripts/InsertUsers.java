@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
 import javax.annotation.Resource;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author WLH

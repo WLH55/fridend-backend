@@ -66,7 +66,6 @@ public class TeamController {
         teamQuery.setUserId(loginUser.getId());
         List<TeamUserVO> teamList = teamService.listTeams(teamQuery,true);
         return ResultUtils.success(teamList);
-
     }
     /**
      *  获取我加入的队伍

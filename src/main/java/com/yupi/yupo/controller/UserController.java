@@ -28,7 +28,7 @@ import static com.yupi.yupo.contant.UserConstant.USER_LOGIN_STATE;
 /**
  * 用户接口
  *
- * @author yupi
+ *
  */
 @RestController
 @RequestMapping("/user")
@@ -82,17 +82,29 @@ public class UserController {
 //8EF4B2F296BEDD10973CAF4FD5EECB73
 //    8EF4B2F296BEDD10973CAF4FD5EECB73
 //    8EF4B2F296BEDD10973CAF4FD5EECB73
+//    @GetMapping("/current")
+//    public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
+//        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+//        User currentUser = (User) userObj;
+//        if (currentUser == null) {
+//            throw new BusinessException(ErrorCode.NOT_LOGIN);
+//        }
+//        long userId = currentUser.getId();
+//        // TODO 校验用户是否合法
+//        User user = userService.getById(userId);
+//        //脱敏用户信息
+//        User safetyUser = userService.getSafetyUser(user);
+//        return ResultUtils.success(safetyUser);
+//    }
     @GetMapping("/current")
-    public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User currentUser = (User) userObj;
-        if (currentUser == null) {
+    public BaseResponse<User> getCurrentUser(HttpServletRequest request){
+        User user = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if(user == null){
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        long userId = currentUser.getId();
-        // TODO 校验用户是否合法
-        User user = userService.getById(userId);
-        User safetyUser = userService.getSafetyUser(user);
+        long userId = user.getId();
+        User user1 = userService.getById(userId);
+        User safetyUser = userService.getSafetyUser(user1);
         return ResultUtils.success(safetyUser);
     }
 
@@ -120,24 +132,46 @@ public class UserController {
 
         return ResultUtils.success(userList);
     }
+//    @GetMapping("/recommend")
+//    public BaseResponse<Page<User>> recommendUser(long pageSize, long pageNum ,HttpServletRequest request) {
+//        //推荐用户
+//        User loginUser = userService.getUserlogin(request);
+//        String redisKey = String.format("yupo:user:recommend:%s", loginUser.getId());
+//        ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
+//        //如果有缓存，直接读缓存
+//        Page<User> userPage = (Page<User>) valueOperations.get(redisKey);
+//        if(userPage != null){
+//            return ResultUtils.success(userPage);
+//        }
+//        //如果没有缓存，查询数据库
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        userPage = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
+//        //写缓存
+//        try {
+//            valueOperations.set(redisKey,userPage,10000, TimeUnit.MILLISECONDS);
+//        } catch (Exception e) {//打上注解@slf4j 他是lombok的注解，可以自动生成日志对象,可以使用log.error();
+//            log.error("redis set key error",e);
+//        }
+//        return ResultUtils.success(userPage);
+//    }
     @GetMapping("/recommend")
-    public BaseResponse<Page<User>> recommendUser(long pageSize, long pageNum ,HttpServletRequest request) {
-        //推荐用户
-        User loginUser = userService.getUserlogin(request);
-        String redisKey = String.format("yupo:user:recommend:%s", loginUser.getId());
-        ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
-        //如果有缓存，直接读缓存
+    public BaseResponse<Page<User>> recommendUser(long pageSize,long pageNum,HttpServletRequest request){
+        User user = userService.getUserlogin(request);
+        String redisKey = String.format("wlh:user:recommend:%s",user.getId());
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+        //有缓存就读缓存
         Page<User> userPage = (Page<User>) valueOperations.get(redisKey);
         if(userPage != null){
             return ResultUtils.success(userPage);
         }
-        //如果没有缓存，查询数据库
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        userPage = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
+        //没有缓存就查询数据库
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();//查出所有的用户
+        userPage = userService.page(new Page(pageNum,pageSize),queryWrapper);
+
         //写缓存
-        try {
-            valueOperations.set(redisKey,userPage,10000, TimeUnit.MILLISECONDS);
-        } catch (Exception e) {//打上注解@slf4j 他是lombok的注解，可以自动生成日志对象,可以使用log.error();
+        try{
+            valueOperations.set(redisKey,userPage,10000,TimeUnit.MILLISECONDS);
+        }catch(Exception e){
             log.error("redis set key error",e);
         }
         return ResultUtils.success(userPage);
@@ -154,16 +188,26 @@ public class UserController {
         boolean b = userService.removeById(id);
         return ResultUtils.success(b);
     }
+//    @PostMapping("/update")
+//    public BaseResponse<Integer> updateUser(@RequestBody User user,HttpServletRequest request) {
+//        //验证参数是否为空
+//        if (user == null) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//        User loginUser = userService.getUserlogin(request);
+//
+//        int result = userService.updateUser(user,loginUser);
+//        return ResultUtils.success(result);
+//    }
     @PostMapping("/update")
-    public BaseResponse<Integer> updateUser(@RequestBody User user,HttpServletRequest request) {
-        //验证参数是否为空
-        if (user == null) {
+    public BaseResponse<Integer> updateUser(@RequestBody User user,HttpServletRequest request){
+        if(user == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getUserlogin(request);
-
         int result = userService.updateUser(user,loginUser);
         return ResultUtils.success(result);
+
     }
 
     /**

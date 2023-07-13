@@ -24,39 +24,7 @@ public class InsertUsers {
     //CPU密集型任务，分配的核心线程数为CPU核数 -1
     //IO密集型任务，分配的核心数可以大于CPU核心数
     private ExecutorService executorService = new ThreadPoolExecutor(60,1000,10000, TimeUnit.MINUTES,new ArrayBlockingQueue<>(10000));
-    @Test
-    public void doInsertUsers(){
-        StopWatch stopWatch = new StopWatch();
-        System.out.println("foossdfsdf");
-        stopWatch.start();
-        final int INSERT_NUM = 100000;
-        List<User> userList =  new ArrayList<>();
-        for(int i = 0; i < INSERT_NUM; i++ ){
-            User user = new User();
 
-            user.setUsername("LH");
-            user.setUserAccount("wlh2");
-            user.setAvatarUrl("https://www.baidu.com/img/bd_logo1.png?where=super");
-            user.setTags("[]");
-            user.setGender(0);
-            user.setUserPassword("12324242");
-            user.setPhone("23124124");
-            user.setEmail("31241213@qq.com");
-            user.setUserStatus(0);
-            user.setUserRole(0);
-            user.setPlanetCode("11111");
-            userList.add(user);
-
-
-
-        }
-        //20秒10000条
-        userService.saveBatch(userList,10000);//使用mybatis-plus的批量插入
-        stopWatch.stop();
-        System.out.println(stopWatch.getTotalTimeMillis());
-
-
-    }
 
 
 

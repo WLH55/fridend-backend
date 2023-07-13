@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 用户更新请求体
+ * 队伍更新请求体
  *
  * @author shayu
  */

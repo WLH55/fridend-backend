@@ -17,6 +17,7 @@ public class RedissonConfig {
     private String host;
 
     private String port;
+    private String password; // 添加 password 字段
 
     @Bean
     public RedissonClient redissonClient() {
@@ -25,6 +26,8 @@ public class RedissonConfig {
         String redisAddress = String.format("redis://%s:%s", host, port);
         //  使用单个Redis，没有开集群 useClusterServers()  设置地址和使用库
         config.useSingleServer().setAddress(redisAddress).setDatabase(3);
+        config.useSingleServer().setPassword(password);
+
         // 2. 创建实例
         RedissonClient redisson = Redisson.create(config);
         return redisson;

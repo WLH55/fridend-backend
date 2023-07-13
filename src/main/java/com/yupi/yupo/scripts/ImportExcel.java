@@ -18,7 +18,7 @@ public class ImportExcel {
         String fileName = "E:\\down\\testExcel.xlsx";
 //          第一种方式
           readByListener(fileName);
-        //第二种方式同步读
+//        第二种方式同步读
 //        synchronousRead(fileName);
 
     }

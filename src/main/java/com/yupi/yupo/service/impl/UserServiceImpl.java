@@ -18,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -213,6 +214,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Gson gson = new Gson();
         //如果想要这个并发执行可以用parallelStream
         return userlist.stream().filter(user -> {
+            //获取用户的json字符串标签
             String tagsStr = user.getTags();
             //如果用户没有标签，直接返回false
 //            if(StringUtils.isBlank(tagsStr)){
@@ -239,24 +241,37 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @param user
      * @return
      */
+//    @Override
+//    public int updateUser(User user,User loginUser) {
+//        long userId = user.getId();
+//        if(userId <= 0){
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//        //仅管理员和自己可以修改
+//        if(!isAdmin(loginUser) && userId != loginUser.getId()){
+//            throw new BusinessException(ErrorCode.NO_AUTH);
+//        }
+//        User userold = userMapper.selectById(userId);
+//        if(userold == null){
+//            throw new BusinessException(ErrorCode.NULL_ERROR);
+//        }
+//        return userMapper.updateById(user);
+//
+//    }
     @Override
-    public int updateUser(User user,User loginUser) {
+    public int updateUser(User user,User loginUser){
         long userId = user.getId();
         if(userId <= 0){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        //仅管理员和自己可以修改
         if(!isAdmin(loginUser) && userId != loginUser.getId()){
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
-        User userold = userMapper.selectById(userId);
-        if(userold == null){
+        User userOld = userMapper.selectById(userId);//有没有旧的用户
+        if(userOld == null){
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         return userMapper.updateById(user);
-
-
-
     }
 
     /**
@@ -264,17 +279,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @param request
      * @return
      */
+//    @Override
+//    public User getUserlogin(HttpServletRequest request) {
+//        if(request == null){
+//            return null;
+//        }
+//
+//        Object ObjUser = request.getSession().getAttribute(USER_LOGIN_STATE);
+//        if(ObjUser == null){
+//            throw new BusinessException(ErrorCode.NO_AUTH);
+//        }
+//        return (User) ObjUser;
     @Override
-    public User getUserlogin(HttpServletRequest request) {
+    public User getUserlogin(HttpServletRequest request){
         if(request == null){
-            return null;
+            return null;//这里怎么没有抛异常？
         }
-
-        Object ObjUser = request.getSession().getAttribute(USER_LOGIN_STATE);
-        if(ObjUser == null){
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if(userObj == null){
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
-        return (User) ObjUser;
+        return (User) userObj;
     }
 
     @Override
