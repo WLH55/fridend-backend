@@ -16,7 +16,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
 
 @Configuration
 @EnableSwagger2WebMvc //该注解是Springfox-swagger框架提供的使用Swagger注解，该注解必须加
-@Profile({"dev", "test"})   //版本控制访问  只允许在dev,test环境下访问
+@Profile({"dev", "test","prod"})   //版本控制访问  只允许在dev,test环境下访问
 public class SwaggerConfig {
     //注入bean
      @Bean(value = "defaultApi2")

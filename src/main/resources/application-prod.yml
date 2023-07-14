@@ -2,7 +2,7 @@ spring:
   # DataSource Config
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://120.79.55.209:3306/yupao
+    url: jdbc:mysql:///yupao
     username: root
     password:
   # session 失效时间

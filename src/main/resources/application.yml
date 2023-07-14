@@ -4,7 +4,7 @@ spring:
   # DataSource Config
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://120.79.55.209:3306/yupao
+    url: jdbc:mysql://xxxxxx:3306/yupao
     username: root
     password:
   # session 失效时间（分钟  也就是86400分钟 两个月）
@@ -14,7 +14,7 @@ spring:
 
   redis:
     port: 6379
-    host: 120.79.55.209
+    host:
     password: 123456
     database: 1  #默认是0
   mvc:

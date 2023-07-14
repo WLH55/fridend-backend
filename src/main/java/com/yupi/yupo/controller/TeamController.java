@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/team")
-@CrossOrigin(origins = {"http://localhost:3000/"})//允许跨域,前端端口
+@CrossOrigin(origins = {"http://120.79.55.209/"})//允许跨域,前端端口
 @Slf4j
 public class TeamController {
 
