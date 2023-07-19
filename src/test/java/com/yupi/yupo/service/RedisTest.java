@@ -25,7 +25,7 @@ public class RedisTest {
         //增
         valueOperations.set("wlh","dog");
         valueOperations.set("cwl",1);
-        valueOperations.set("陈文龙",1.1);
+        valueOperations.set("cwl",1.1);
         User user = new User();
         user.setId(1L);
         user.setUsername("文千");
